@@ -1,0 +1,53 @@
+---
+title: "ESM 244 Assignment 1 Part 2"
+author: "Kelsie Fronheiser"
+date: "1/22/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, error = FALSE, message = FALSE)
+```
+## Part 2: PCA
+```{r}
+library(tidyverse)
+library(janitor)
+
+#for PCA
+library(ggfortify)
+```
+
+```{r}
+world_env <- read_csv("world_env_vars.csv")
+```
+#### PCA Biplot
+
+The following is a Principal Component Analysis (PCA). PCA is an ordination method that is used to identify patterns in multivariate data in two-dimensional space. The data used for the analysis is of environmental/climatic variables that was compiled and provided by @zander_venter on Kaggle from publicly available remote sensing datasets. The resulting biplot is a diagram that simultaneously shows the relationship between five environmental variables (elevation, tree canopy cover, mean annual rain, mean annual temperature, and isothermality) by their Euclidean distance from one another in two-dimensional space and the loading of each variable for the first two principal components.
+```{r}
+
+env_pca <- world_env %>% 
+  select(elevation, tree_canopy_cover, rain_mean_annual, temp_mean_annual, isothermality) %>% 
+  drop_na() %>% 
+  prcomp()
+
+env_pca$rotation
+
+#make a data set for autoplot where obs that exist match obs that made the variables
+
+env_complete <- world_env %>% 
+  drop_na(elevation, tree_canopy_cover, rain_mean_annual, temp_mean_annual, isothermality)
+
+autoplot(env_pca,
+         data = env_complete,
+         loadings = TRUE,
+         loadings.label = TRUE,
+         loadings.label.vjust = 2) +
+  theme_minimal() +
+  labs(title = "Biplot of Environmental Variables", caption = "This biplot shows the relationship between elevation, tree canaopy cover, annual mean rain, annual mean temperature, \n and isothermality across the globe. Observation are indicated by the black dots and the loadings of each variable are \n indicated by the red lines & labeled.")
+```
+
+#### Results
+* Principal components 1 & 2 account for 99.97% of the variance in the data
+* Tree canopy cover, mean annual temperature, and isothermailty are very highly correlated
+* Tree canopy cover, mean annual temperature, and isothermailty have weak loadings (little variance) along the first two principal components
+* Elevation and mean annual rain are minimally negatively correlated

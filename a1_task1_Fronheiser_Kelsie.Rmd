@@ -1,0 +1,73 @@
+---
+title: "ESM244 Assignment 1 Part 1"
+author: "Kelsie Fronheiser"
+date: "1/21/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, error = FALSE, message = FALSE)
+```
+## Part 1: Combining Graphs with "patchwork" Package
+```{r}
+library(tidyverse)
+library(janitor)
+
+#for ggplot customization:
+library(readxl)
+library(gghighlight)
+library(lubridate)
+library(plotly)
+
+#to make compound figures:
+library(patchwork)
+```
+
+```{r}
+sierra_herps <- read_excel("sierra_amphibians.xlsx")
+```
+#### Graph 1
+```{r}
+sierra_herps_tidy <- sierra_herps %>%
+  filter(amphibian_species == "RAMU") %>%
+  filter(amphibian_life_stage %in% c("Adult", "SubAdult", "Tadpole")) %>% 
+  mutate(date = year(survey_date))
+
+sierra_graph1 <- ggplot(data = sierra_herps_tidy, aes(x = date, y = amphibian_number)) +
+  geom_col(aes(fill = amphibian_life_stage)) +
+  labs(fill = "Life Stage", y = "Total abundance", x = "Year")
+
+```
+#### Graph 2
+```{r}
+sierra_herps_tidy2 <- sierra_herps %>%
+  filter(amphibian_species == "RAMU") %>%
+  filter(amphibian_life_stage %in% c("Adult", "SubAdult")) %>% 
+  group_by(lake_id) %>% 
+  summarise(sum = sum(amphibian_number)) %>% 
+  filter(sum > 1318) %>% 
+  mutate(lake_id = paste("Lake",
+                         lake_id, sep = " "))
+  
+
+sierra_graph2 <- ggplot(data = sierra_herps_tidy2, aes(x = reorder(lake_id, -sum), y = sum)) +
+  geom_col(aes(fill = lake_id)) +
+  labs(fill ="Lake ID Number", y = "Adults/subadults Abundance", x = "Lake ID")
+```
+#### Combine graphs
+```{r}
+
+graph_combo <- (sierra_graph1 / sierra_graph2) & theme_minimal() &
+  plot_annotation(title = "Endangered Mountain Yellow-Legged Frogs in Sierra Nevada Lakes",caption = "These two graphs display the abundance of endangered Mountain yellow-legged frogs located in the Sierra Nevadas.\n The top graph shows the total abundance of Mountain yellow-legged frogs in all lakes in each year by life stage \n (adult, subadult, tadpole). The bottom graph shows the abundance of adult and subadult Mountain yellow-legged frogs \n in each of the top five populated Sierra Nevada Lakes. ")
+
+graph_combo
+```
+
+
+
+
+
+
+
+
+
